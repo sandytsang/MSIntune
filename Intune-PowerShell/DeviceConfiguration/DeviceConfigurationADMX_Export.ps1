@@ -1,9 +1,7 @@
 
 <#
-
-.COPYRIGHT
-Copyright (c) Microsoft Corporation. All rights reserved. Licensed under the MIT license.
-See LICENSE in the project root for license information.
+http://www.scconfigmgr.com/2019/01/17/use-intune-graph-api-export-and-import-intune-admx-templates/
+Version 1.0 2019 Jan.17 First version
 
 #>
 
