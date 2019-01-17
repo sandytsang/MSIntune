@@ -597,7 +597,7 @@ foreach ($DCP in $DCPs)
 			
 			$jsonCode = @"
 {
-   "enabled":$($GroupPolicyConfigurationsDefinitionValue.enabled.tostring().Replace("True", "true")),
+   "enabled":$($GroupPolicyConfigurationsDefinitionValue.enabled.tostring().Replace("True", "true").Replace("False", "false")),
     "definition@odata.bind":"https://graph.microsoft.com/beta/deviceManagement/groupPolicyDefinitions('$($DefinitionValuedefinitionID)')"
 }
 "@
