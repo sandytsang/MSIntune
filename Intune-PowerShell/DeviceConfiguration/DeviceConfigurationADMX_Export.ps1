@@ -76,7 +76,6 @@ Write-Host "Checking for AzureAD module..."
         $adalforms = Join-Path $AadModule.ModuleBase "Microsoft.IdentityModel.Clients.ActiveDirectory.Platform.dll"
 
     }
-
     else {
 
         $adal = Join-Path $AadModule.ModuleBase "Microsoft.IdentityModel.Clients.ActiveDirectory.dll"
@@ -324,12 +323,10 @@ Function Get-GroupPolicyConfigurationsDefinitionValuesdefinition () {
 )    
     $graphApiVersion = "Beta"
     $DCP_resource = "deviceManagement/groupPolicyConfigurations/$GroupPolicyConfigurationID/definitionValues/$GroupPolicyConfigurationsDefinitionValueID/definition"
-    write-host "url is $DCP_resource" -ForegroundColor Green
 
     try {
         
     $uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)"
-    write-host "url is $uri" -ForegroundColor Red
 
     $responseBody =  Invoke-RestMethod -Uri $uri -Headers $authToken -Method Get
     
@@ -350,7 +347,7 @@ Function Get-GroupPolicyConfigurationsDefinitionValuesdefinition () {
     break
     
     } 
-    $responseBody.id 
+    $responseBody
     }  
 
 
@@ -373,19 +370,19 @@ Function Get-GroupPolicyDefinitionsPresentations () {
 
 
     [Parameter(Mandatory=$true)]
-    [string]$groupPolicyDefinitionsID
+    [string]$groupPolicyDefinitionsID,
+
+    [Parameter(Mandatory=$true)]
+    [string]$GroupPolicyConfigurationsDefinitionValueID
 
 )    
     $graphApiVersion = "Beta"
-    $DCP_resource = "deviceManagement/groupPolicyDefinitions/$groupPolicyDefinitionsID/presentations"
-    write-host "url is $DCP_resource" -ForegroundColor Green
-
+    $DCP_resource = "deviceManagement/groupPolicyConfigurations/$groupPolicyDefinitionsID/definitionValues/$GroupPolicyConfigurationsDefinitionValueID/presentationValues?`$expand=presentation"
     try {
         
     $uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)"
-    write-host "url is $uri" -ForegroundColor Red
 
-    (Invoke-RestMethod -Uri $uri -Headers $authToken -Method Get).Value
+    (Invoke-RestMethod -Uri $uri -Headers $authToken -Method Get).Value.presentation
     
      
     }
@@ -409,102 +406,6 @@ Function Get-GroupPolicyDefinitionsPresentations () {
 
 
 ####################################################
-
-Function Export-JSONData(){
-
-<#
-.SYNOPSIS
-This function is used to export JSON data returned from Graph
-.DESCRIPTION
-This function is used to export JSON data returned from Graph
-.EXAMPLE
-Export-JSONData -JSON $JSON
-Export the JSON inputted on the function
-.NOTES
-NAME: Export-JSONData
-#>
-
-param (
-
-$JSON,
-$Type,
-$ExportPath
-
-)
-
-    try {
-
-        if($JSON -eq "" -or $JSON -eq $null){
-
-        write-host "No JSON specified, please specify valid JSON..." -f Red
-
-        }
-
-        elseif(!$ExportPath){
-
-        write-host "No export path parameter set, please provide a path to export the file" -f Red
-
-        }
-
-        elseif(!(Test-Path $ExportPath)){
-
-        write-host "$ExportPath doesn't exist, can't export JSON Data" -f Red
-
-        }
-
-        else {
-
-        $JSON1 = ConvertTo-Json $JSON
-
-        $JSON_Convert = $JSON1 | ConvertFrom-Json
-
-        $displayName = $JSON_Convert.displayName
-
-        # Updating display name to follow file naming conventions - https://msdn.microsoft.com/en-us/library/windows/desktop/aa365247%28v=vs.85%29.aspx
-        $DisplayName = $DisplayName -replace '\<|\>|:|"|/|\\|\||\?|\*', "_"
-
-        $Properties = ($JSON_Convert | Get-Member | ? { $_.MemberType -eq "NoteProperty" }).Name
-
-            if($Type){
-
-                $FileName_CSV = "$DisplayName" + "_" + $Type + "_" + $(get-date -f dd-MM-yyyy-H-mm-ss) + ".csv"
-                $FileName_JSON = "$DisplayName" + "_" + $Type + "_" + $(get-date -f dd-MM-yyyy-H-mm-ss) + ".json"
-
-            }
-
-            else {
-
-                $FileName_CSV = "$DisplayName" + "_" + $(get-date -f dd-MM-yyyy-H-mm-ss) + ".csv"
-                $FileName_JSON = "$DisplayName" + "_" + $(get-date -f dd-MM-yyyy-H-mm-ss) + ".json"
-
-            }
-
-            $Object = New-Object System.Object
-
-                foreach($Property in $Properties){
-
-                $Object | Add-Member -MemberType NoteProperty -Name $Property -Value $JSON_Convert.$Property
-
-                }
-
-            write-host "Export Path:" "$ExportPath"
-
-            $Object | Export-Csv -LiteralPath "$ExportPath\$FileName_CSV" -Delimiter "," -NoTypeInformation -Append
-            $JSON1 | Set-Content -LiteralPath "$ExportPath\$FileName_JSON"
-            write-host "CSV created in $ExportPath\$FileName_CSV..." -f cyan
-            write-host "JSON created in $ExportPath\$FileName_JSON..." -f cyan
-            
-        }
-
-    }
-
-    catch {
-
-    $_.Exception
-
-    }
-
-}
 
 ####################################################
 
@@ -560,7 +461,7 @@ $global:authToken = Get-AuthToken -User $User
 
 ####################################################
 
-#$ExportPath = Read-Host -Prompt "Please specify a path to export the policy data to e.g. C:\IntuneOutput"
+$ExportPath = Read-Host -Prompt "Please specify a path to export the policy data to e.g. C:\IntuneOutput"
 
 # If the directory path doesn't exist prompt user to create the directory
 $ExportPath = $ExportPath.replace('"','')
@@ -593,20 +494,11 @@ $Confirm = read-host
 
 Write-Host
 
-$DCPs = Get-GroupPolicyConfigurations
+$DCPs = Get-GroupPolicyConfigurations 
 
 foreach($DCP in $DCPs){
     $FolderName = $($DCP.displayName) -replace '\<|\>|:|"|/|\\|\||\?|\*', "_"
-    New-Item "C:\Temp\Intune\ADMX-Test\$($FolderName)" -ItemType Directory -Force
-<#$jsonCode = @"
-{
-    "description":"",
-    "displayName":"$($DCP.displayName)"
-}
-"@
-            New-Item "C:\Temp\Intune\ADMX-Test\$($FolderName)\name.json" -ItemType File -Force
-            $jsonCode | Out-File "C:\Temp\Intune\ADMX-Test\$($FolderName)\name.json"  -Encoding ascii -Force
-#>
+    New-Item "$ExportPath\$($FolderName)" -ItemType Directory -Force
 
     $GroupPolicyConfigurationsDefinitionValues = Get-GroupPolicyConfigurationsDefinitionValues -GroupPolicyConfigurationID $DCP.id
     $i = 0
@@ -614,43 +506,106 @@ foreach($DCP in $DCPs){
     {
         $i+=1
         $DefinitionValuePresentationValues = Get-GroupPolicyConfigurationsDefinitionValuesPresentationValues -GroupPolicyConfigurationID $DCP.id -GroupPolicyConfigurationsDefinitionValueID $GroupPolicyConfigurationsDefinitionValue.id
-        if ($DefinitionValuePresentationValues) {
-        $DefinitionValuedefinitionID = Get-GroupPolicyConfigurationsDefinitionValuesdefinition -GroupPolicyConfigurationID $DCP.id -GroupPolicyConfigurationsDefinitionValueID $GroupPolicyConfigurationsDefinitionValue.id
-        $DefinitionValuedefinitionID
-        $GroupPolicyDefinitionsPresentations = Get-GroupPolicyDefinitionsPresentations -groupPolicyDefinitionsID $DefinitionValuedefinitionID
-        $GroupPolicyDefinitionsPresentations.id
+        $DefinitionValuedefinition = Get-GroupPolicyConfigurationsDefinitionValuesdefinition -GroupPolicyConfigurationID $DCP.id -GroupPolicyConfigurationsDefinitionValueID $GroupPolicyConfigurationsDefinitionValue.id
 
+        $DefinitionValuedefinitionID = $($DefinitionValuedefinition.id)
+
+        $DefinitionValuedefinitionDisplayName = $($DefinitionValuedefinition.displayName)
+        $FileName = $DefinitionValuedefinitionDisplayName + [string]$i
+        $FileName = $($fileName) -replace '\<|\>|:|"|/|\\|\||\?|\*', "_"
+        $FileName
+        write-host "id is $DefinitionValuedefinitionID" -ForegroundColor Green
+        write-host "name is $DefinitionValuedefinitionDisplayName" -ForegroundColor Red
+        if ($DefinitionValuePresentationValues) {
+
+        $GroupPolicyDefinitionsPresentations = Get-GroupPolicyDefinitionsPresentations -groupPolicyDefinitionsID $DCP.id -GroupPolicyConfigurationsDefinitionValueID $GroupPolicyConfigurationsDefinitionValue.id
+        write-host "presentation ID is $($GroupPolicyDefinitionsPresentations.id)"
+        <#Remove null properties
+        foreach ($env in $DefinitionValuePresentationValues.values) {
+        foreach ($phase in $env.PSObject.Properties) {
+
+        if ($phase.value -eq $null)
+        {$phase.name
+        $env.PSObject.Properties.Remove($phase.name)
+        }
+        }
+        }
+        #>
+        $JSON_Convert = ConvertTo-Json $DefinitionValuePresentationValues -Depth 5 | ConvertFrom-Json | Select-Object -Property * -ExcludeProperty id,createdDateTime,lastModifiedDateTime,version
+        $JSON_Output = $JSON_Convert | ConvertTo-Json
+        $DefinitionValuePresentationValues
+
+        #If settings is set as Enabled
+            if ($DefinitionValuePresentationValues.value -match "True") {
 $jsonCode = @"
 {
    "enabled":true,
    "presentationValues":[  
       {  
-         "@odata.type":"#microsoft.graph.groupPolicyPresentationValueText",
-         "value":"3",
+         <!PLACEHOLDER!>,
          "presentation@odata.bind":"https://graph.microsoft.com/beta/deviceManagement/groupPolicyDefinitions('$($DefinitionValuedefinitionID)')/presentations('$($GroupPolicyDefinitionsPresentations.id)')"
       }
    ],
    "definition@odata.bind":"https://graph.microsoft.com/beta/deviceManagement/groupPolicyDefinitions('$($DefinitionValuedefinitionID)')"
 }
 "@
-        New-Item "C:\Temp\Intune\ADMX-Test\$($FolderName)\$i.json" -ItemType File -Force
-        $jsonCode | Out-File "C:\Temp\Intune\ADMX-Test\$($FolderName)\$i.json"  -Encoding ascii -Force
-            }     
-    else {
+
+                $jsonCodePLACEHOLDER = $JSON_Output.Substring(1)
+
+                $jsonCodePLACEHOLDER = $jsonCodePLACEHOLDER.Replace("<!PLACEHOLDER!>", $_).Substring(0,$jsonCodePLACEHOLDER.Length-1)
+        
+
+
+
+                $jsonCode = $jsonCode.Replace("<!PLACEHOLDER!>", $jsonCodePLACEHOLDER).Replace("True","true")
+                $jsonCode
+                New-Item "$ExportPath\$($FolderName)\$FileName.json" -ItemType File -Force
+                $jsonCode | Set-Content -LiteralPath "$ExportPath\$($FolderName)\$FileName.json" -Force
+            }
+            else {
+$jsonCode = @"
+{
+   "enabled":true,
+   "presentationValues":[  
+      {  
+         <!PLACEHOLDER!>,
+         "presentation@odata.bind":"https://graph.microsoft.com/beta/deviceManagement/groupPolicyDefinitions('$($DefinitionValuedefinitionID)')/presentations('$($GroupPolicyDefinitionsPresentations[0].id)')"
+      }
+   ],
+   "definition@odata.bind":"https://graph.microsoft.com/beta/deviceManagement/groupPolicyDefinitions('$($DefinitionValuedefinitionID)')"
+}
+"@
+
+                $jsonCodePLACEHOLDER = $JSON_Output.Substring(1)
+
+                $jsonCodePLACEHOLDER = $jsonCodePLACEHOLDER.Replace("<!PLACEHOLDER!>", $_).Substring(0,$jsonCodePLACEHOLDER.Length-1)
+        
+
+
+
+                $jsonCode = $jsonCode.Replace("<!PLACEHOLDER!>", $jsonCodePLACEHOLDER)
+                $jsonCode
+                New-Item "$ExportPath\$($FolderName)\$FileName.json" -ItemType File -Force
+                $jsonCode | Set-Content -LiteralPath "$ExportPath\$($FolderName)\$FileName.json" -Force
+            } 
+        }
+        else 
+        {
 
 $jsonCode = @"
 {
     "enabled":false,
-    "definition@odata.bind":"https://graph.microsoft.com/beta/deviceManagement/groupPolicyDefinitions/$($GroupPolicyConfigurationsDefinitionValue.id)"
+    "definition@odata.bind":"https://graph.microsoft.com/beta/deviceManagement/groupPolicyDefinitions('$($DefinitionValuedefinitionID)')"
 }
 "@
+
             Write-Host "what" -ForegroundColor Green
-            New-Item "C:\Temp\Intune\ADMX-Test\$($FolderName)\$i.json" -ItemType File -Force
-            $jsonCode | Out-File "C:\Temp\Intune\ADMX-Test\$($FolderName)\$i.json"  -Encoding ascii -Force
+            New-Item "$ExportPath\$($FolderName)\$FileName.json" -ItemType File -Force
+            $jsonCode | Out-File "$ExportPath\$($FolderName)\$FileName.json"  -Encoding ascii -Force
           }
+
     }
 }
-
 
 Write-Host
 #

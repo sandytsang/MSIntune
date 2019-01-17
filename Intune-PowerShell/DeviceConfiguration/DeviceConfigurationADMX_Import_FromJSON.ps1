@@ -1,4 +1,4 @@
-
+function import-ADMX {
 <#
 
 .COPYRIGHT
@@ -388,8 +388,9 @@ break
 }
 $PolicyName = (Get-Item $ImportPath).Name
 $GroupPolicyConfigurationID = Create-GroupPolicyConfigurations -DisplayName $PolicyName
-$GroupPolicyConfigurationID
-write-host "test GroupPolicyConfigurationID"
+
+
+
 
 $JsonFiles = (Get-ChildItem $ImportPath).FullName
 
@@ -398,7 +399,7 @@ $JsonFiles = (Get-ChildItem $ImportPath).FullName
 foreach ($JsonFile in $JsonFiles) {
 # Replacing quotes for Test-Path
 
-
+Write-Host $JsonFile
 
 ####################################################
 
@@ -419,4 +420,20 @@ write-host
 Write-Host "Adding Device Configuration Policy '$DisplayName'" -ForegroundColor Yellow
 Create-GroupPolicyConfigurationsDefinitionValues -JSON $JSON_Output -GroupPolicyConfigurationID $GroupPolicyConfigurationID
 }
+}
 
+####################################################
+
+$ImportPath = Read-Host -Prompt "Please specify a path to import the policy data to e.g. C:\IntuneOutput"
+$ImportPath = $ImportPath.replace('"','')
+# If the directory path doesn't exist prompt user to create the directory
+
+
+if(!(Test-Path "$ImportPath")){
+
+Write-Host
+Write-Host "Path '$ImportPath' doesn't exist" -ForegroundColor Yellow
+break
+}
+
+Get-ChildItem "$ImportPath"  | Where-Object {$_.PSIsContainer -eq $True} | ForEach-Object {import-ADMX $_.FullName}
