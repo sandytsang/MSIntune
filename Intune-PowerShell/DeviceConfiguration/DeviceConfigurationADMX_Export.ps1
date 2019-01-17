@@ -551,7 +551,7 @@ foreach ($DCP in $DCPs)
 			{
 				$jsonCode = @"
 {
-   "enabled":true,
+   "enabled":$($GroupPolicyConfigurationsDefinitionValue.enabled.tostring().Replace("True", "true")),
    "presentationValues":[  
       {  
          <!PLACEHOLDER!>,
@@ -573,7 +573,7 @@ foreach ($DCP in $DCPs)
 			{
 				$jsonCode = @"
 {
-   "enabled":true,
+   "enabled":$($GroupPolicyConfigurationsDefinitionValue.enabled.tostring().Replace("True", "true")),
    "presentationValues":[  
       {  
          <!PLACEHOLDER!>,
@@ -597,7 +597,7 @@ foreach ($DCP in $DCPs)
 			
 			$jsonCode = @"
 {
-    "enabled":false,
+   "enabled":$($GroupPolicyConfigurationsDefinitionValue.enabled.tostring().Replace("True", "true")),
     "definition@odata.bind":"https://graph.microsoft.com/beta/deviceManagement/groupPolicyDefinitions('$($DefinitionValuedefinitionID)')"
 }
 "@
