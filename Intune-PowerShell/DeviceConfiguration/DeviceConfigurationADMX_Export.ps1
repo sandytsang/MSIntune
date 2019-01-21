@@ -1,7 +1,8 @@
 
 <#
 http://www.scconfigmgr.com/2019/01/17/use-intune-graph-api-export-and-import-intune-admx-templates/
-Version 1.0 2019 Jan.17 First version
+Version 1.0			 2019 Jan.17 First version
+Version 1.0.1		 2019 Jan.21 Fixed bug enable value was wrong
 
 #>
 
@@ -537,10 +538,11 @@ foreach ($DCP in $DCPs)
 		$DefinitionValuedefinitionDisplayName = $($DefinitionValuedefinition.displayName)
 		$FileName = $DefinitionValuedefinitionDisplayName + [string]$i
 		$FileName = $($fileName) -replace '\<|\>|:|"|/|\\|\||\?|\*', "_"
+
+		$GroupPolicyDefinitionsPresentations = Get-GroupPolicyDefinitionsPresentations -groupPolicyDefinitionsID $DCP.id -GroupPolicyConfigurationsDefinitionValueID $GroupPolicyConfigurationsDefinitionValue.id
 		
-		if ($DefinitionValuePresentationValues)
+		if ($($GroupPolicyConfigurationsDefinitionValue.enabled -match $true))
 		{
-			$GroupPolicyDefinitionsPresentations = Get-GroupPolicyDefinitionsPresentations -groupPolicyDefinitionsID $DCP.id -GroupPolicyConfigurationsDefinitionValueID $GroupPolicyConfigurationsDefinitionValue.id
 			$JSON_Convert = ConvertTo-Json $DefinitionValuePresentationValues -Depth 5 | ConvertFrom-Json | Select-Object -Property * -ExcludeProperty id, createdDateTime, lastModifiedDateTime, version
 			$JSON_Output = $JSON_Convert | ConvertTo-Json
 			
