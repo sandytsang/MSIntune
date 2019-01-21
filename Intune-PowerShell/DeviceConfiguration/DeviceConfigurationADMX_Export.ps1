@@ -529,6 +529,7 @@ foreach ($DCP in $DCPs)
 	$i = 0
 	foreach ($GroupPolicyConfigurationsDefinitionValue in $GroupPolicyConfigurationsDefinitionValues)
 	{
+		$GroupPolicyConfigurationsDefinitionValue
 		$i += 1
 		$DefinitionValuePresentationValues = Get-GroupPolicyConfigurationsDefinitionValuesPresentationValues -GroupPolicyConfigurationID $DCP.id -GroupPolicyConfigurationsDefinitionValueID $GroupPolicyConfigurationsDefinitionValue.id
 		$DefinitionValuedefinition = Get-GroupPolicyConfigurationsDefinitionValuesdefinition -GroupPolicyConfigurationID $DCP.id -GroupPolicyConfigurationsDefinitionValueID $GroupPolicyConfigurationsDefinitionValue.id
@@ -541,7 +542,7 @@ foreach ($DCP in $DCPs)
 
 		$GroupPolicyDefinitionsPresentations = Get-GroupPolicyDefinitionsPresentations -groupPolicyDefinitionsID $DCP.id -GroupPolicyConfigurationsDefinitionValueID $GroupPolicyConfigurationsDefinitionValue.id
 		
-		if ($($GroupPolicyConfigurationsDefinitionValue.enabled -match $true))
+		if ($GroupPolicyConfigurationsDefinitionValue.enabled -match $true -and $DefinitionValuePresentationValues)
 		{
 			$JSON_Convert = ConvertTo-Json $DefinitionValuePresentationValues -Depth 5 | ConvertFrom-Json | Select-Object -Property * -ExcludeProperty id, createdDateTime, lastModifiedDateTime, version
 			$JSON_Output = $JSON_Convert | ConvertTo-Json
@@ -577,7 +578,7 @@ foreach ($DCP in $DCPs)
    "presentationValues":[  
       {  
          <!PLACEHOLDER!>,
-         "presentation@odata.bind":"https://graph.microsoft.com/beta/deviceManagement/groupPolicyDefinitions('$($DefinitionValuedefinitionID)')/presentations('$($GroupPolicyDefinitionsPresentations[0].id)')"
+         "presentation@odata.bind":"https://graph.microsoft.com/beta/deviceManagement/groupPolicyDefinitions('$($DefinitionValuedefinitionID)')/presentations('$($GroupPolicyDefinitionsPresentations.id)')"
       }
    ],
    "definition@odata.bind":"https://graph.microsoft.com/beta/deviceManagement/groupPolicyDefinitions('$($DefinitionValuedefinitionID)')"
