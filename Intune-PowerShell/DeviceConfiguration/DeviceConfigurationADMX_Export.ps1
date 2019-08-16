@@ -3,6 +3,7 @@
 http://www.scconfigmgr.com/2019/01/17/use-intune-graph-api-export-and-import-intune-admx-templates/
 Version 1.0			 2019 Jan.17 First version
 Version 1.0.1		 2019 Jan.21 Fixed bug enable value was wrong
+Version 1.0.2		 2019 Aug.16 Fixed some logic errors and improved json creation. @powers-hell @onpremcloudguy
 
 #>
 
@@ -62,16 +63,16 @@ NAME: Get-AuthToken
 	if ($AadModule.count -gt 1)
 	{
 		
-		$Latest_Version = ($AadModule | select version | Sort-Object)[-1]
+		$Latest_Version = ($AadModule | Select-Object version | Sort-Object)[-1]
 		
-		$aadModule = $AadModule | ? { $_.version -eq $Latest_Version.version }
+		$aadModule = $AadModule | Where-Object { $_.version -eq $Latest_Version.version }
 		
 		# Checking if there are multiple versions of the same module found
 		
 		if ($AadModule.count -gt 1)
 		{
 			
-			$aadModule = $AadModule | select -Unique
+			$aadModule = $AadModule | Select-Object -Unique
 			
 		}
 		
@@ -526,87 +527,32 @@ foreach ($DCP in $DCPs)
 	New-Item "$ExportPath\$($FolderName)" -ItemType Directory -Force
 	
 	$GroupPolicyConfigurationsDefinitionValues = Get-GroupPolicyConfigurationsDefinitionValues -GroupPolicyConfigurationID $DCP.id
-	$i = 0
 	foreach ($GroupPolicyConfigurationsDefinitionValue in $GroupPolicyConfigurationsDefinitionValues)
 	{
 		$GroupPolicyConfigurationsDefinitionValue
-		$i += 1
-		$DefinitionValuePresentationValues = Get-GroupPolicyConfigurationsDefinitionValuesPresentationValues -GroupPolicyConfigurationID $DCP.id -GroupPolicyConfigurationsDefinitionValueID $GroupPolicyConfigurationsDefinitionValue.id
 		$DefinitionValuedefinition = Get-GroupPolicyConfigurationsDefinitionValuesdefinition -GroupPolicyConfigurationID $DCP.id -GroupPolicyConfigurationsDefinitionValueID $GroupPolicyConfigurationsDefinitionValue.id
-		
-		$DefinitionValuedefinitionID = $($DefinitionValuedefinition.id)
-		
-		$DefinitionValuedefinitionDisplayName = $($DefinitionValuedefinition.displayName)
-		$FileName = $DefinitionValuedefinitionDisplayName + [string]$i
-		$FileName = $($fileName) -replace '\<|\>|:|"|/|\\|\||\?|\*', "_"
-
+		$DefinitionValuedefinitionID = $DefinitionValuedefinition.id
+		$DefinitionValuedefinitionDisplayName = $DefinitionValuedefinition.displayName
 		$GroupPolicyDefinitionsPresentations = Get-GroupPolicyDefinitionsPresentations -groupPolicyDefinitionsID $DCP.id -GroupPolicyConfigurationsDefinitionValueID $GroupPolicyConfigurationsDefinitionValue.id
-		
-		if ($GroupPolicyConfigurationsDefinitionValue.enabled -match $true -and $DefinitionValuePresentationValues)
-		{
-			$JSON_Convert = ConvertTo-Json $DefinitionValuePresentationValues -Depth 5 | ConvertFrom-Json | Select-Object -Property * -ExcludeProperty id, createdDateTime, lastModifiedDateTime, version
-			$JSON_Output = $JSON_Convert | ConvertTo-Json
-			
-			#If settings is set as Enabled
-			if ($DefinitionValuePresentationValues.value -match "True")
-			{
-				$jsonCode = @"
-{
-   "enabled":$($GroupPolicyConfigurationsDefinitionValue.enabled.tostring().Replace("True", "true")),
-   "presentationValues":[  
-      {  
-         <!PLACEHOLDER!>,
-         "presentation@odata.bind":"https://graph.microsoft.com/beta/deviceManagement/groupPolicyDefinitions('$($DefinitionValuedefinitionID)')/presentations('$($GroupPolicyDefinitionsPresentations.id)')"
-      }
-   ],
-   "definition@odata.bind":"https://graph.microsoft.com/beta/deviceManagement/groupPolicyDefinitions('$($DefinitionValuedefinitionID)')"
-}
-"@
-				
-				$jsonCodePLACEHOLDER = $JSON_Output.Substring(1)
-				$jsonCodePLACEHOLDER = $jsonCodePLACEHOLDER.Replace("<!PLACEHOLDER!>", $_).Substring(0, $jsonCodePLACEHOLDER.Length - 1)
-				$jsonCode = $jsonCode.Replace("<!PLACEHOLDER!>", $jsonCodePLACEHOLDER).Replace("True", "true")
-				write-host "Exporting setting $($DefinitionValuedefinitionDisplayName) to folder $ExportPath\$($FolderName)\$FileName.json" -ForegroundColor Yellow
-				New-Item "$ExportPath\$($FolderName)\$FileName.json" -ItemType File -Force
-				$jsonCode | Set-Content -LiteralPath "$ExportPath\$($FolderName)\$FileName.json" -Force
-			}
-			else
-			{
-				$jsonCode = @"
-{
-   "enabled":$($GroupPolicyConfigurationsDefinitionValue.enabled.tostring().Replace("True", "true")),
-   "presentationValues":[  
-      {  
-         <!PLACEHOLDER!>,
-         "presentation@odata.bind":"https://graph.microsoft.com/beta/deviceManagement/groupPolicyDefinitions('$($DefinitionValuedefinitionID)')/presentations('$($GroupPolicyDefinitionsPresentations.id)')"
-      }
-   ],
-   "definition@odata.bind":"https://graph.microsoft.com/beta/deviceManagement/groupPolicyDefinitions('$($DefinitionValuedefinitionID)')"
-}
-"@
-				
-				$jsonCodePLACEHOLDER = $JSON_Output.Substring(1)
-				$jsonCodePLACEHOLDER = $jsonCodePLACEHOLDER.Replace("<!PLACEHOLDER!>", $_).Substring(0, $jsonCodePLACEHOLDER.Length - 1)
-				$jsonCode = $jsonCode.Replace("<!PLACEHOLDER!>", $jsonCodePLACEHOLDER)
-				write-host "Exporting setting $($DefinitionValuedefinitionDisplayName) to folder $ExportPath\$($FolderName)\$FileName.json" -ForegroundColor Yellow
-				New-Item "$ExportPath\$($FolderName)\$FileName.json" -ItemType File -Force
-				$jsonCode | Set-Content -LiteralPath "$ExportPath\$($FolderName)\$FileName.json" -Force
-			}
-		}
-		else
-		{
-			
-			$jsonCode = @"
-{
-   "enabled":$($GroupPolicyConfigurationsDefinitionValue.enabled.tostring().Replace("True", "true").Replace("False", "false")),
-    "definition@odata.bind":"https://graph.microsoft.com/beta/deviceManagement/groupPolicyDefinitions('$($DefinitionValuedefinitionID)')"
-}
-"@
-			write-host "Exporting setting $($DefinitionValuedefinitionDisplayName) to folder $ExportPath\$($FolderName)\$FileName.json" -ForegroundColor Yellow
-			New-Item "$ExportPath\$($FolderName)\$FileName.json" -ItemType File -Force
-			$jsonCode | Out-File "$ExportPath\$($FolderName)\$FileName.json" -Encoding ascii -Force
-		}
-		
+		$DefinitionValuePresentationValues = Get-GroupPolicyConfigurationsDefinitionValuesPresentationValues -GroupPolicyConfigurationID $DCP.id -GroupPolicyConfigurationsDefinitionValueID $GroupPolicyConfigurationsDefinitionValue.id
+		$OutDef = New-Object -TypeName PSCustomObject
+        $OutDef | Add-Member -MemberType NoteProperty -Name "definition@odata.bind" -Value "https://graph.microsoft.com/beta/deviceManagement/groupPolicyDefinitions('$definitionValuedefinitionID')"
+        $OutDef | Add-Member -MemberType NoteProperty -Name "enabled" -value $($GroupPolicyConfigurationsDefinitionValue.enabled.tostring().tolower())
+        if ($DefinitionValuePresentationValues.count -gt 1) {
+            $i = 0
+            $PresValues = @()
+            foreach ($Pres in $DefinitionValuePresentationValues) {
+                $P = $pres | Select-Object -Property * -ExcludeProperty id, createdDateTime, lastModifiedDateTime, version
+                $GPDPID = $groupPolicyDefinitionsPresentations[$i].id
+                $P | Add-Member -MemberType NoteProperty -Name "presentation@odata.bind" -Value "https://graph.microsoft.com/beta/deviceManagement/groupPolicyDefinitions('$definitionValuedefinitionID')/presentations('$GPDPID')"
+                $PresValues += $P
+                $i++
+            }
+            $OutDef | Add-Member -MemberType NoteProperty -Name "presentationValues" -Value $PresValues
+        }
+		$FileName = $definitionValuedefinitionDisplayName -replace '\<|\>|:|"|/|\\|\||\?|\*', "_"
+		$OutDefjson = ($OutDef | ConvertTo-Json -Depth 10).replace("\u0027","'")
+		$OutDefjson | Out-File -FilePath "$ExportPath\$($folderName)\$fileName.json" -Encoding ascii
 	}
 }
 
