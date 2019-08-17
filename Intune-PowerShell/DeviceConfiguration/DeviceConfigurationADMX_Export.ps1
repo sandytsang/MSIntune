@@ -550,7 +550,7 @@ foreach ($DCP in $DCPs)
             }
             $OutDef | Add-Member -MemberType NoteProperty -Name "presentationValues" -Value $PresValues
         }
-		$FileName = $definitionValuedefinitionDisplayName -replace '\<|\>|:|"|/|\\|\||\?|\*', "_"
+		$FileName = "$($DefinitionValuedefinition.categoryPath)-$definitionValuedefinitionDisplayName" -replace '\<|\>|:|"|/|\\|\||\?|\*', "_"
 		$OutDefjson = ($OutDef | ConvertTo-Json -Depth 10).replace("\u0027","'")
 		$OutDefjson | Out-File -FilePath "$ExportPath\$($folderName)\$fileName.json" -Encoding ascii
 	}
