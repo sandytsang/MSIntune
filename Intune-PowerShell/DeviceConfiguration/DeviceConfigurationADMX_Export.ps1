@@ -538,7 +538,7 @@ foreach ($DCP in $DCPs)
 		$OutDef = New-Object -TypeName PSCustomObject
         $OutDef | Add-Member -MemberType NoteProperty -Name "definition@odata.bind" -Value "https://graph.microsoft.com/beta/deviceManagement/groupPolicyDefinitions('$definitionValuedefinitionID')"
         $OutDef | Add-Member -MemberType NoteProperty -Name "enabled" -value $($GroupPolicyConfigurationsDefinitionValue.enabled.tostring().tolower())
-        if ($DefinitionValuePresentationValues.count -gt 1) {
+        if ($DefinitionValuePresentationValues) {
             $i = 0
             $PresValues = @()
             foreach ($Pres in $DefinitionValuePresentationValues) {
@@ -550,7 +550,7 @@ foreach ($DCP in $DCPs)
             }
             $OutDef | Add-Member -MemberType NoteProperty -Name "presentationValues" -Value $PresValues
         }
-		$FileName = "$($DefinitionValuedefinition.categoryPath)-$definitionValuedefinitionDisplayName" -replace '\<|\>|:|"|/|\\|\||\?|\*', "_"
+		$FileName = (Join-Path $DefinitionValuedefinition.categoryPath $($definitionValuedefinitionDisplayName)) -replace '\<|\>|:|"|/|\\|\||\?|\*', "_"
 		$OutDefjson = ($OutDef | ConvertTo-Json -Depth 10).replace("\u0027","'")
 		$OutDefjson | Out-File -FilePath "$ExportPath\$($folderName)\$fileName.json" -Encoding ascii
 	}
