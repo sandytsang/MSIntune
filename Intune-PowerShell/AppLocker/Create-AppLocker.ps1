@@ -6,7 +6,7 @@
     This script will create AppLocker settings for EXE
 
 .NOTES
-    File name: Create-AppLocker.ps1
+    File name: Create-AppLockerEXE.ps1
     VERSION: 2005a
     AUTHOR: Sandy Zeng
     Created:  2020-09-20
@@ -18,14 +18,14 @@
     1.0.1 - 
 #>
 
-
 $namespaceName = "root\cimv2\mdm\dmmap" #Do not change this
 $className = "MDM_AppLocker_ApplicationLaunchRestrictions01_EXE03" #Do not change this
 $GroupName = "AppLocker001" #You can use your own Groupname, don't use special charaters or with space
 $parentID = "./Vendor/MSFT/AppLocker/ApplicationLaunchRestrictions/$GroupName"
 
-
 Add-Type -AssemblyName System.Web
+
+#This is example Rule Collection for EXE, you should change this to your own settings
 $obj = [System.Net.WebUtility]::HtmlEncode(@"
 <RuleCollection Type="Exe" EnforcementMode="Enabled">
 <FilePathRule Id="420088cd-47f6-420d-b47a-12a650198eff" Name="%OSDRIVE%\ProgramData\Microsoft\Windows Defender\Platform\*" Description="" UserOrGroupSid="S-1-1-0" Action="Allow">
