@@ -523,7 +523,7 @@ $DCPs = Get-GroupPolicyConfigurations
 
 foreach ($DCP in $DCPs)
 {
-	$FolderName = $($DCP.displayName) -replace '\<|\>|:|"|/|\\|\||\?|\*', "_"
+	$FolderName = $($DCP.displayName) -replace '\[|\]|\<|\>|:|"|/|\\|\||\?|\*', "_"
 	New-Item "$ExportPath\$($FolderName)" -ItemType Directory -Force
 	
 	$GroupPolicyConfigurationsDefinitionValues = Get-GroupPolicyConfigurationsDefinitionValues -GroupPolicyConfigurationID $DCP.id
@@ -550,7 +550,7 @@ foreach ($DCP in $DCPs)
             }
             $OutDef | Add-Member -MemberType NoteProperty -Name "presentationValues" -Value $PresValues
         }
-		$FileName = (Join-Path $DefinitionValuedefinition.categoryPath $($definitionValuedefinitionDisplayName)) -replace '\<|\>|:|"|/|\\|\||\?|\*', "_"
+		$FileName = (Join-Path $DefinitionValuedefinition.categoryPath $($definitionValuedefinitionDisplayName)) -replace '\[|\]|\<|\>|:|"|/|\\|\||\?|\*', "_"
 		$OutDefjson = ($OutDef | ConvertTo-Json -Depth 10).replace("\u0027","'")
 		$OutDefjson | Out-File -FilePath "$ExportPath\$($folderName)\$fileName.json" -Encoding ascii
 	}
