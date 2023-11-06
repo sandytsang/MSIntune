@@ -26,19 +26,19 @@ function New-RandomPassword {
     param([int]$PasswordLength = 25)
     #ASCII Character set for Password
     $CharacterSet = @{
-            Uppercase   = (97..122) | Get-Random -Count 10 | % {[char]$_}
-            Lowercase   = (65..90)  | Get-Random -Count 10 | % {[char]$_}
-            Numeric     = (48..57)  | Get-Random -Count 10 | % {[char]$_}
-            SpecialChar = (33..47)+(58..64)+(91..96)+(123..126) | Get-Random -Count 10 | % {[char]$_}
+        Uppercase   = (97..122) | Get-Random -Count 10 | % { [char]$_ }
+        Lowercase   = (65..90)  | Get-Random -Count 10 | % { [char]$_ }
+        Numeric     = (48..57)  | Get-Random -Count 10 | % { [char]$_ }
+        SpecialChar = (33..47) + (58..64) + (91..96) + (123..126) | Get-Random -Count 10 | % { [char]$_ }
     }
     #Frame Random Password from given character set
     $StringSet = $CharacterSet.Uppercase + $CharacterSet.Lowercase + $CharacterSet.Numeric + $CharacterSet.SpecialChar
-    -join(Get-Random -Count $PasswordLength -InputObject $StringSet)
+    -join (Get-Random -Count $PasswordLength -InputObject $StringSet)
 }
 
 #Find buit-in Administrator account, rename it to Administrator, set random password and disable the account
 try {
-    $BuitinAdmin = Get-LocalUser | Where-Object {$_.sid -like 'S-1-5-21-*-500'}
+    $BuitinAdmin = Get-LocalUser | Where-Object { $_.sid -like 'S-1-5-21-*-500' }
     Rename-LocalUser -Name $BuitinAdmin.Name -NewName "Administrator"
     $password = New-RandomPassword -PasswordLength 30 | ConvertTo-SecureString -AsPlainText -Force
     Set-LocalUser -Name "Administrator" -Password $password
@@ -60,8 +60,7 @@ try {
     if ($check -and $check.Enabled) {
         Write-Output "Account: $localadminname is found and it's already enabled"
     }
-    elseif (!$check.Enabled) 
-    {
+    elseif (!$check.Enabled) {
         Enable-LocalUser -Name $localAdminName
         Write-Output "Account: $localadminname is now enabled"
     }
