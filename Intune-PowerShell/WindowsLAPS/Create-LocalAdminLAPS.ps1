@@ -18,7 +18,7 @@
     Version history:
     1.0.0 - (2023-10-12) Script created
     1.0.1 - (2023-10-13) Add random password generator
-    1.0.2 - (2023-10-13) Add rename buit-in administrator account and disable it
+    1.0.2 - (2023-11-06) Add rename buit-in administrator account and disable it
 #>
 
 
