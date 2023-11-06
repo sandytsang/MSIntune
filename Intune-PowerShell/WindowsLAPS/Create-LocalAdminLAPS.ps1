@@ -18,7 +18,6 @@
     Version history:
     1.0.0 - (2023-10-12) Script created
     1.0.1 - (2023-10-13) Add random password generator
-    1.0.2 - (2023-11-06) Add rename buit-in administrator account and disable it
 #>
 
 
@@ -56,26 +55,40 @@ $password = New-RandomPassword -PasswordLength 30 | ConvertTo-SecureString -AsPl
 $Localadmingroupname = $((Get-LocalGroup -SID "S-1-5-32-544").Name)
 
 #Create local admin account
-if ((Get-LocalUser).Name -Contains $localAdminName) {
-    Write-Output "account: $localAdminName is aleady exist"
-}
-else {
-    try {
-        New-LocalUser "$localAdminName" -Password $password -FullName "$localAdminName" -Description "Windows LAPS account" -ErrorAction Stop | Out-Null
-        Write-Output "Created account: $localadminname"
+try {
+    $check = Get-LocalUser -Name $localAdminName -ErrorAction SilentlyContinue
+    if ($check -and $check.Enabled) {
+        Write-Output "Account: $localadminname is found and it's already enabled"
     }
-    catch {
-        Write-Error "Encountered Error: $_.Exception.Message"
-        exit 1
+    elseif (!$check.Enabled) 
+    {
+        Enable-LocalUser -Name $localAdminName
+        Write-Output "Account: $localadminname is now enabled"
     }
+    else {
+        try {
+            New-LocalUser "$localAdminName" -Password $password -FullName "$localAdminName" -Description "Windows LAPS account" -ErrorAction Stop | Out-Null
+            Write-Output "Created account: $localadminname"
+        }
+        catch {
+            Write-Error "Encountered Error: $_.Exception.Message"
+            exit 1
+        }
+    }
+
 }
+catch {
+    Write-Error "Encountered Error: $_.Exception.Message"
+    exit 1
+}
+
 
 #Add local admin account to local admin group
 $administrators = net localgroup $Localadmingroupname
 $member = $administrators[6..($Localadmingroupname.Length - 3)] | Where-Object { $_ -match "$localAdminName" }
 
 if ($member) {
-    Write-Output "Account: $localAdminName is already member of group: $LocalAdminGroup"
+    Write-Output "Account: $localAdminName is already member of group: $Localadmingroupname"
     exit 0
 }
 else {
