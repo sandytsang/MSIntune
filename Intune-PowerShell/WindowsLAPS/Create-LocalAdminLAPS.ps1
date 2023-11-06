@@ -8,7 +8,7 @@
     Create-LocalAdminLAPSRemediation.ps1      
 
 .NOTES
-    FileName:    Create-LocalAdminLAPSRemediation.ps1
+    FileName:    Create-LocalAdminLAPS.ps1
     Author:      Sandy Zeng
     Contributor: Sandy Zeng
     Contact:     
