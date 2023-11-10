@@ -26,7 +26,7 @@ $localAdminName = "PLocalAdmin"
 $Localadmingroupname = $((Get-LocalGroup -SID "S-1-5-32-544").Name)
 
 try {
-    #Find the custom local admin account and check if it's a renamed buit-in account
+    #Find the custom local admin account and check if it's a renamed built-in account
     $check = Get-LocalUser -Name $localAdminName -ErrorAction stop
     if ($check.sid -like 'S-1-5-21-*-500') {
         Write-Error "Account: $localAdminName was renamed from built-in administrator account"
