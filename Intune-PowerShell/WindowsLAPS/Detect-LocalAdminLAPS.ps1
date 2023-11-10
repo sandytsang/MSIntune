@@ -13,7 +13,7 @@
     Contributor: Sandy Zeng
     Contact:     
     Created:     2023-10-12
-    Updated:     2023-10-12
+    Updated:     2023-11-06
 
     Version history:
     1.0.0 - (2023-10-12) Script created
@@ -32,7 +32,7 @@ try {
         Write-Error "Account: $localAdminName was renamed from built-in administrator account"
         exit 1
     }
-    elseif (!$check.Enabled) {
+    elseif ($check -and !$check.Enabled) {
         Write-Error "Account: $localAdminName is exist but disabled"
         exit 1
     }
