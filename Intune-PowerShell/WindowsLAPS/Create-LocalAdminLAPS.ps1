@@ -10,14 +10,15 @@
 .NOTES
     FileName:    Create-LocalAdminLAPS.ps1
     Author:      Sandy Zeng
-    Contributor: Sandy Zeng
+    Contributor: Jan Ketil Skanke
     Contact:     
     Created:     2023-10-12
-    Updated:     2023-10-12
+    Updated:     2023-11-10
 
     Version history:
     1.0.0 - (2023-10-12) Script created
     1.0.1 - (2023-10-13) Add random password generator
+    1.0.2 - (2023-11-10) fixed enable user account logic
 #>
 
 
@@ -60,7 +61,7 @@ try {
     if ($check -and $check.Enabled) {
         Write-Output "Account: $localadminname is found and it's already enabled"
     }
-    elseif (!$check.Enabled) {
+    elseif ($check -and !$check.Enabled) {
         Enable-LocalUser -Name $localAdminName
         Write-Output "Account: $localadminname is now enabled"
     }
