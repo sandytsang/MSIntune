@@ -37,17 +37,17 @@ function New-RandomPassword {
     -join (Get-Random -Count $PasswordLength -InputObject $StringSet)
 }
 
-#Find buit-in Administrator account, rename it to Administrator, set random password and disable the account
+#Find built-in Administrator account, rename it to Administrator, set random password and disable the account
 try {
-    $BuitinAdmin = Get-LocalUser | Where-Object { $_.sid -like 'S-1-5-21-*-500' }
-    Rename-LocalUser -Name $BuitinAdmin.Name -NewName "Administrator"
+    $BuiltinAdmin = Get-LocalUser | Where-Object { $_.sid -like 'S-1-5-21-*-500' }
+    Rename-LocalUser -Name $BuiltinAdmin.Name -NewName "Administrator"
     $password = New-RandomPassword -PasswordLength 30 | ConvertTo-SecureString -AsPlainText -Force
     Set-LocalUser -Name "Administrator" -Password $password
     Disable-LocalUser -Name "Administrator"
-    Write-Output "Buit-in administrator account is renamed and disabled"
+    Write-Output "Built-in administrator account is renamed and disabled"
 }
 catch {
-    Write-Error "Issue with handling buit-in administrator account"
+    Write-Error "Issue with handling built-in administrator account"
 }
 
 #Custom local admin account   
