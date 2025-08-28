@@ -13,6 +13,7 @@
     Version histroy: 
     1.0.0 - 27.08.2025 Initial release
     1.0.1 - 28.08.2025 Move summary file to root folder
+    1.0.2 - 28.08.2025 Added NextLink for getting all the settings
 #>
 
 param(
@@ -118,7 +119,28 @@ try {
             # Make individual API call for this policy's settings with expanded definitions
             $policyDetailUri = "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/$($policy.id)/settings?`$expand=settingDefinitions"
             
-            $rawPolicyResponse = Invoke-MgGraphRequest -Uri $policyDetailUri -Method GET
+            # Handle pagination for policy settings
+            $allSettings = @()
+            $nextSettingsLink = $policyDetailUri
+            $pageCount = 0
+            
+            do {
+                $pageCount++
+                Write-Host "  Retrieving settings page $pageCount..." -ForegroundColor Gray
+                
+                $settingsResponse = Invoke-MgGraphRequest -Uri $nextSettingsLink -Method GET
+                $allSettings += $settingsResponse.value
+                $nextSettingsLink = $settingsResponse.'@odata.nextLink'
+                
+            } while ($nextSettingsLink)
+            
+            # Create the complete response object with all settings
+            $rawPolicyResponse = @{
+                value = $allSettings
+                '@odata.context' = $settingsResponse.'@odata.context'
+            }
+            
+            Write-Host "  Retrieved $($allSettings.Count) settings across $pageCount page(s)" -ForegroundColor Gray
             
             # Create safe filename
             $policyName = if ($policy.name) { $policy.name } else { "Policy_$($policy.id)" }
