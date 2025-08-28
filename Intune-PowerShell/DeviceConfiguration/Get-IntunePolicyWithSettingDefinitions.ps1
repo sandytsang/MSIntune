@@ -12,6 +12,7 @@
 
     Version histroy: 
     1.0.0 - 27.08.2025 Initial release
+    1.0.1 - 28.08.2025 Move summary file to root folder
 #>
 
 param(
@@ -156,6 +157,34 @@ try {
             Write-Host "Failed to export policy '$($policy.name)': $($_.Exception.Message)" -ForegroundColor Red
             $errorCount++
         }
+    }
+    
+    # Summary
+    Write-Host "" -ForegroundColor White
+    Write-Host "=========================================" -ForegroundColor Cyan
+    Write-Host "Export Summary:" -ForegroundColor Cyan
+    Write-Host "  Total policies found: $($policies.Count)" -ForegroundColor White
+    Write-Host "  Successfully exported: $exportedCount" -ForegroundColor Green
+    Write-Host "  Errors: $errorCount" -ForegroundColor $(if ($errorCount -gt 0) { "Red" } else { "Green" })
+    Write-Host "  Output directory: $outputDir" -ForegroundColor White
+    Write-Host "" -ForegroundColor White
+    
+    if ($exportedCount -gt 0) {
+        Write-Host "Settings Catalog policies exported successfully!" -ForegroundColor Green
+        
+        # Create summary file
+        $summary = @{
+            ExportDate = Get-Date
+            TotalPolicies = $policies.Count
+            ExportedPolicies = $exportedCount
+            Errors = $errorCount
+            OutputDirectory = $outputDir
+            Policies = $policies | Select-Object id, name, description, platforms, technologies, templateReference
+        }
+        
+        $summaryPath = Join-Path (Get-Location) "SettingsCatalogPolicies_ExportSummary.json"
+        $summary | ConvertTo-Json -Depth 5 | Out-File -FilePath $summaryPath -Encoding UTF8
+        Write-Host "Export summary saved to: ExportSummary.json" -ForegroundColor Green
     }
 }
 catch {
