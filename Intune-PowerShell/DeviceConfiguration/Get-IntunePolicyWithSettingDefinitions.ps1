@@ -184,7 +184,7 @@ try {
         
         $summaryPath = Join-Path (Get-Location) "SettingsCatalogPolicies_ExportSummary.json"
         $summary | ConvertTo-Json -Depth 5 | Out-File -FilePath $summaryPath -Encoding UTF8
-        Write-Host "Export summary saved to: ExportSummary.json" -ForegroundColor Green
+        Write-Host "Export summary saved to: $($summaryPath)" -ForegroundColor Green
     }
 }
 catch {
