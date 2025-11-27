@@ -39,10 +39,13 @@ $Action = New-ScheduledTaskAction -Execute "$env:windir\system32\deviceenroller.
 $cleanupScript = @"
 `$enrollmentPath = 'HKLM:\SOFTWARE\Microsoft\Enrollments\*'
 `$enrollments = Get-Item `$enrollmentPath -ErrorAction SilentlyContinue | Where-Object { `$_.Property -contains 'ProviderID' }
-if (`$enrollments) {
-    Write-Host 'Device is enrolled in Intune. Removing scheduled task...'
-    Unregister-ScheduledTask -TaskName 'TriggerEnrollment' -Confirm:`$false
-    exit 0
+foreach (`$enrollment in `$enrollments) {
+    `$providerID = Get-ItemPropertyValue -Path `$enrollment.PSPath -Name 'ProviderID' -ErrorAction SilentlyContinue
+    if (`$providerID -eq 'MS DM Server') {
+        Write-Host 'Device is enrolled in Intune (ProviderID: MS DM Server). Removing scheduled task...'
+        Unregister-ScheduledTask -TaskName 'TriggerEnrollment' -Confirm:`$false
+        exit 0
+    }
 }
 "@
 
