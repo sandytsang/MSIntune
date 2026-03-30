@@ -14,6 +14,7 @@
     1.0.0 - 27.08.2025 Initial release
     1.0.1 - 28.08.2025 Move summary file to root folder
     1.0.2 - 28.08.2025 Added NextLink for getting all the settings
+    1.0.3 - 30.03.2026 Fixed export summary table.
 #>
 
 param(
@@ -201,7 +202,7 @@ try {
             ExportedPolicies = $exportedCount
             Errors = $errorCount
             OutputDirectory = $outputDir
-            Policies = $policies | Select-Object id, name, description, platforms, technologies, templateReference
+            Policies = $policies | ForEach-Object { [PSCustomObject]$_ } | Select-Object id, name, description
         }
         
         $summaryPath = Join-Path (Get-Location) "SettingsCatalogPolicies_ExportSummary.json"
