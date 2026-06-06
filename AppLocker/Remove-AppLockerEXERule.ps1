@@ -6,7 +6,7 @@
     This script will delete AppLocker settings for EXE
 
 .NOTES
-    File name: Delete-AppLocker.ps1
+    File name: Remove-AppLockerEXERule.ps1
     VERSION: 2005a
     AUTHOR: Sandy Zeng
     Created:  2020-09-20

@@ -1,7 +1,23 @@
-﻿$scope = "https://graph.microsoft.com/.default"
-$Tenant = "yourtenant.onmicrosoft.com" #List here your tenants
-$AppID = "23567e61-a6e4-4be3-xxxxx" #Change this to your own app ID
-$AppSecret = "O7MTNZ[]L/xxxxxxxxx" #Change this to your own App Secret
+﻿<#
+.SYNOPSIS
+    Assigns an Intune RBAC Role Scope Tag by name.
+
+.DESCRIPTION
+    Authenticates to Microsoft Graph using client credentials (app-only) and assigns the
+    specified Intune RBAC Role Scope Tag.
+
+.NOTES
+    File name: Add-ScopeTag.ps1
+    AUTHOR: Sandy Zeng
+    Sandy Zeng / https://www.sandyzeng.com
+    Licensed under the MIT license.
+    Please credit me if you find this script useful and do some cool things with it.
+#>
+
+$scope = "https://graph.microsoft.com/.default"
+$Tenant = "<YourTenant>.onmicrosoft.com" #List here your tenants
+$AppID = "<YourAppId>" #Change this to your own app ID
+$AppSecret = "<YourAppSecret>" #Change this to your own App Secret
 $ScopeTagName = "YourScopeTagName"
 
 

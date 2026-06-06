@@ -1,8 +1,8 @@
 <#
 .SYNOPSIS
-   This script retrieves all Settings Catalog policies from Intune. for each policy to get settings with expanded setting definitions
+   This script retrieves all Settings Catalog policies from Intune, for each policy getting settings with expanded setting definitions.
 .DESCRIPTION
-    This script is detecting if need to format the data disk on the device.
+    This script retrieves all Settings Catalog policies from Intune with their expanded setting definitions and exports them.
 .NOTES
     Requires Microsoft.Graph.DeviceManagement module
     Requires Microsoft.Graph.Authentication module

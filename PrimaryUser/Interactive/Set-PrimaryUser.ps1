@@ -1,9 +1,9 @@
 <#
 .SYNOPSIS
-    This script is for getting no MFA registered users, use in Azure Automation Account
+    This script sets/updates the Intune device primary user.
 
 .DESCRIPTION
-    This script will get no MFA registered users
+    This script authenticates to Microsoft Graph and sets the primary user on Intune managed Windows devices.
 
 .NOTES
     File name: Set-PrimaryUser.ps1
@@ -25,10 +25,10 @@
 Import-Module -Name MSAL.PS
 
 $scope = "https://graph.microsoft.com/.default"
-$Tenant = "mvp24.onmicrosoft.com" #List here your tenants
+$Tenant = "<YourTenant>.onmicrosoft.com" #List here your tenants
 $authority = "https://login.microsoftonline.com/$tenant/oauth2/v2.0/token"
-$AppID = "f38c1076-cbf2-48a5-" #Change this to your own app ID
-$AppSecret = ConvertTo-SecureString "O5m7k9cuyM_" -AsPlainText -Force #Change this to your own app secret
+$AppID = "<YourAppId>" #Change this to your own app ID
+$AppSecret = ConvertTo-SecureString "<YourAppSecret>" -AsPlainText -Force #Change this to your own app secret
 
 <#
 #If use Azure Automation

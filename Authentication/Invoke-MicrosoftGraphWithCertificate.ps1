@@ -1,8 +1,19 @@
-#Credit to Alex Asplund https://adamtheautomator.com/powershell-graph-api/
+<#
+.SYNOPSIS
+    Authenticates to Microsoft Graph using a certificate-based JWT assertion.
 
-$TenantName = "xxxxxx.onmicrosoft.com"  #Your tenant name
-$AppId = "788ed3fa-554d-45da-b3ab-xxxxxxx" #Your Azure Application registration
-$Certificate = Get-Item Cert:\LocalMachine\My\F0C32E5F4DEE90EA47C34611E43EBD06DA56399F #Your certificate on the client
+.DESCRIPTION
+    Example of building a signed JWT client assertion from a client certificate and requesting
+    an app-only Microsoft Graph access token (client credentials with certificate).
+
+.NOTES
+    Credit to Alex Asplund https://adamtheautomator.com/powershell-graph-api/
+    Licensed under the MIT license.
+#>
+
+$TenantName = "<YourTenant>.onmicrosoft.com"  #Your tenant name
+$AppId = "<YourAppId>" #Your Azure Application registration
+$Certificate = Get-Item Cert:\LocalMachine\My\<YourCertificateThumbprint> #Your certificate on the client
 $Scope = "https://graph.microsoft.com/.default"
 
 # Create base64 hash of certificate

@@ -1,4 +1,17 @@
-﻿Add-Type @"
+﻿<#
+.SYNOPSIS
+    Configures Windows auto-logon for kiosk scenarios by storing credentials in LSA secrets.
+
+.DESCRIPTION
+    Uses embedded C#/P-Invoke (PInvoke.LSAUtil) to call the LSA APIs and set the auto-logon
+    credentials used by kiosk/assigned-access devices.
+
+.NOTES
+    File name: Autologon.ps1
+    Licensed under the MIT license.
+#>
+
+Add-Type @"
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
