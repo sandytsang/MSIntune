@@ -18,6 +18,7 @@ content lives together regardless of where it runs (interactive, Azure Automatio
 | [Kiosk/](Kiosk) | Assigned Access / kiosk configuration and auto-logon |
 | [SecurityBaseline/](SecurityBaseline) | Exported Intune security baseline definitions |
 | [Firewall/](Firewall) | Windows Firewall rule reporting |
+| [IntuneNetwork/](IntuneNetwork) | Network connectivity diagnostics for Intune / Windows Autopatch |
 | [Reference/](Reference) | Reference data (Windows version-to-build lookup) |
 
 ## Scripts
@@ -82,6 +83,11 @@ content lives together regardless of where it runs (interactive, Azure Automatio
 | Script | Description |
 |--------|-------------|
 | [Get-FirewallRules.ps1](Firewall/Get-FirewallRules.ps1) | Reports the enabled Windows Firewall rules enforced for the active network profile |
+
+### IntuneNetwork
+| Script | Description |
+|--------|-------------|
+| [Test-AutopatchDiagnosticDataConnectivity.ps1](IntuneNetwork/Test-AutopatchDiagnosticDataConnectivity.ps1) | Diagnoses the Windows Autopatch "diagnostic data connectivity" device readiness failure by validating on-device prerequisites and endpoints (region-aware, with optional TLS-inspection detection, DNS-cache endpoint discovery, real HTTPS POST app-layer testing, and DiagTrack Event ID 29 log analysis). See the [folder README](IntuneNetwork/README.md). |
 
 ### Reference
 | File | Description |
