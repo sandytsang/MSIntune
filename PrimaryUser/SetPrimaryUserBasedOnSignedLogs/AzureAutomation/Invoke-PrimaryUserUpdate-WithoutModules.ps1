@@ -9,6 +9,10 @@ Converted to use direct REST API calls without any PowerShell modules.
 .NOTES
 Author:      Sandy Zeng
 
+Version history:
+1.1 - (2026-06-11) Performance: index sign-in events by DeviceId for O(1) lookups, only process devices with sign-in activity, and remove per-event logging.
+1.0 - Initial version using direct REST API calls without PowerShell modules.
+
 Required API Permissions (Application):
 DeviceManagementManagedDevices.ReadWrite.All
 AuditLog.Read.All
@@ -181,7 +185,6 @@ try {
                 CreatedDateTime   = $SignInEvent.createdDateTime
                 DeviceId          = $DevId
             })
-            Write-Output "    - $($SignInEvent.userPrincipalName) | DeviceId: $DevId | Date: $($SignInEvent.createdDateTime)"
         }
     }
 
@@ -197,8 +200,21 @@ if ($SignInEvents.Count -gt 0) {
     # Define summary list
     $AutomationSummary = [System.Collections.Generic.List[object]]::new()
 
+    # Index sign-in events by DeviceId once (O(1) lookups instead of scanning all events per device)
+    $SignInsByDevice = @{}
+    foreach ($Event in $SignInEvents) {
+        if (-not $SignInsByDevice.ContainsKey($Event.DeviceId)) {
+            $SignInsByDevice[$Event.DeviceId] = [System.Collections.Generic.List[object]]::new()
+        }
+        $SignInsByDevice[$Event.DeviceId].Add($Event)
+    }
+
+    # Only process devices that actually have matching sign-in activity
+    $DevicesToProcess = $IntuneDevices | Where-Object { $SignInsByDevice.ContainsKey($_.azureADDeviceId) }
+    Write-Output "  $($DevicesToProcess.Count) device(s) have sign-in activity to evaluate"
+
     # For each device, get the primary user and update where required
-    foreach ($Device in $IntuneDevices) {
+    foreach ($Device in $DevicesToProcess) {
 
         # Reset variables
         $PrimaryUserPrincipalName = $null
@@ -210,7 +226,7 @@ if ($SignInEvents.Count -gt 0) {
         $PrimaryUserPrincipalName = [string]($Device.userPrincipalName).ToLower()
         $DeviceLabel = "$($Device.deviceName) ($($Device.azureADDeviceId))"
         Write-Output "[Processing] $DeviceLabel | Current primary user: $(if ($PrimaryUserPrincipalName) { $PrimaryUserPrincipalName } else { '<none>' })"
-        $UserActivity = $SignInEvents | Where-Object { $_.DeviceId -eq $Device.azureADDeviceId } | Group-Object UserPrincipalName | Sort-Object Count -Descending | Select-Object -First 1
+        $UserActivity = $SignInsByDevice[$Device.azureADDeviceId] | Group-Object UserPrincipalName | Sort-Object Count -Descending | Select-Object -First 1
 
         # If sign in activity is not null, compare against primary user
         if ($null -ne $UserActivity) {
