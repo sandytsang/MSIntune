@@ -9,8 +9,9 @@
 
 $diagTrack = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Diagnostics\DiagTrack'
 $regional  = "$diagTrack\RegionalSettings"
+$aria      = "$diagTrack\HeartBeats\Aria"
+$seville   = "$diagTrack\SevilleEventlogManager"
 
-# Helper: convert a Windows FILETIME (decimal or 0x hex) to UTC + local strings
 function Convert-FileTime {
     param([Parameter(Mandatory)][long]$Ticks)
     if ($Ticks -le 0) { return 'Not set / never' }
@@ -18,8 +19,9 @@ function Convert-FileTime {
     '{0:yyyy-MM-dd HH:mm:ss} UTC  ({1:yyyy-MM-dd HH:mm:ss} local)' -f $utc, $utc.ToLocalTime()
 }
 
-# --- Upload status counters ---
 $dt = Get-ItemProperty -Path $diagTrack -ErrorAction SilentlyContinue
+$ar = Get-ItemProperty -Path $aria      -ErrorAction SilentlyContinue
+$sv = Get-ItemProperty -Path $seville   -ErrorAction SilentlyContinue
 
 Write-Host "`n=== Telemetry Upload Status ===" -ForegroundColor Cyan
 [PSCustomObject]@{
@@ -27,17 +29,15 @@ Write-Host "`n=== Telemetry Upload Status ===" -ForegroundColor Cyan
     'LastSuccessfulNormalUploadTime'       = Convert-FileTime $dt.LastSuccessfulNormalUploadTime
     'LastSuccessfulRealtimeUploadTime'     = Convert-FileTime $dt.LastSuccessfulRealtimeUploadTime
     'LastSuccessfulCostDeferredUploadTime' = Convert-FileTime $dt.LastSuccessfulCostDeferredUploadTime
-    'LastInvalidHttpCode'                  = ('0x{0:X8}' -f [int]$dt.LastInvalidHttpCode)
-    'VortexHttpAttempts'                   = $dt.VortexHttpAttempts
-    'VortexHttpFailures4xx'                = $dt.VortexHttpFailures4xx
-    'VortexHttpFailures5xx'                = $dt.VortexHttpFailures5xx
-    'SuccessfulConnections'                = $dt.SuccessfulConnections
-    'FailedConnections'                    = $dt.FailedConnections
+    'LastInvalidHttpCode' = ('0x{0:X8}' -f [uint32]$ar.LastInvalidHttpCode)
+    'VortexHttpAttempts'                   = $ar.VortexHttpAttempts
+    'VortexHttpFailures4xx'                = $ar.VortexHttpFailures4xx
+    'VortexHttpFailures5xx'                = $ar.VortexHttpFailures5xx
+    'SuccessfulConnections'                = $sv.SuccessfulConnections
+    'FailedConnections'                    = $sv.FailedConnections
 } | Format-List
 
-# --- Cached collector endpoints + when config was last refreshed ---
 $rs = Get-ItemProperty -Path $regional -ErrorAction SilentlyContinue
-
 Write-Host "=== Cached Collector Endpoints ===" -ForegroundColor Cyan
 [PSCustomObject]@{
     'CollectorFunctionalRegionalUrl'  = $rs.CollectorFunctionalRegionalUrl
