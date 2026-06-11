@@ -1,4 +1,4 @@
-# IntuneNetwork
+# AutopatchHealthCheck
 
 Network connectivity diagnostics for Microsoft Intune / Windows Autopatch.
 
@@ -92,3 +92,56 @@ Results print as a colored table with these columns:
 - Endpoint coverage and TLS-inspection ideas were informed in part by Martin
   Himken's [IntuneNetworkRequirements](https://github.com/MHimken/IntuneNetworkRequirements)
   project.
+
+## Get-TelemetryUploadStatus.ps1
+
+Reads the live **DiagTrack** registry on the device and reports the telemetry
+upload status and the cached collector endpoints, converting Windows FILETIME
+values to readable UTC and local date/time.
+
+Use it as a quick health check after running
+`Test-AutopatchDiagnosticDataConnectivity.ps1`: it shows whether diagnostic data
+is actually uploading successfully, when the last successful upload happened, how
+many connections are failing, and which regional collector endpoints the device
+has cached.
+
+### What it reports
+
+**Telemetry Upload Status** (from `HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Diagnostics\DiagTrack`):
+
+| Value | Meaning |
+|-------|---------|
+| `LastSuccessfulUploadTime` | Most recent successful upload of any kind |
+| `LastSuccessfulNormalUploadTime` | Last successful normal-priority upload |
+| `LastSuccessfulRealtimeUploadTime` | Last successful realtime upload |
+| `LastSuccessfulCostDeferredUploadTime` | Last successful cost-deferred upload |
+| `LastInvalidHttpCode` | Most recent invalid HTTP response code (shown as hex) |
+| `VortexHttpAttempts` | Total upload attempts to the Vortex ingestion service |
+| `VortexHttpFailures4xx` | Client-side (4xx) upload failures — often proxy/auth blocks |
+| `VortexHttpFailures5xx` | Server-side (5xx) upload failures |
+| `SuccessfulConnections` | Count of successful connections |
+| `FailedConnections` | Count of failed connections |
+
+**Cached Collector Endpoints** (from the `RegionalSettings` subkey):
+
+| Value | Meaning |
+|-------|---------|
+| `CollectorFunctionalRegionalUrl` | Regional functional-data collector URL |
+| `CollectorDiagnosticRegionalUrl` | Regional diagnostic-data collector URL |
+| `WatsonRegionalServerName` | Regional Windows Error Reporting (Watson) server |
+| `LastSettingsUpdateTime (config)` | When the device last refreshed its telemetry configuration |
+
+### Example
+
+```powershell
+.\Get-TelemetryUploadStatus.ps1
+```
+
+### Requirements
+
+- Windows PowerShell 5.1+
+- Run on the affected device; run elevated for the most complete results
+
+### Credits
+
+- **Author:** Sandy Zeng
