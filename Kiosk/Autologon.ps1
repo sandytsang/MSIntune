@@ -8,6 +8,7 @@
 
 .NOTES
     File name: Autologon.ps1
+    Author:      Sandy Zeng
     Licensed under the MIT license.
 #>
 
@@ -166,5 +167,6 @@ namespace PInvoke.LSAUtil {
 Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" -Name "DefaultUserName" -Value "Kiosk@yourcompany.com"
 Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" -Name "DefaultDomainName" -Value "AzureAD"
 Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" -Name "AutoAdminLogon" -Value "1"
+Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" -Name "ForceAutoLogon" -Value "1"
 [PInvoke.LSAUtil.LSAutil]::new("DefaultPassword").SetSecret("YourPassword")
 #Restart-Computer -Force
